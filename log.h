@@ -8,8 +8,6 @@
 #include <stdarg.h>
 #include <pthread.h>
 
-using namespace std;
-
 
 class Log
 {
@@ -19,8 +17,8 @@ private:
 		DAY_SECONDS = 24 * 60 * 60	
 	};
 
-	string name;
-	string path; 
+	std::string name;
+	std::string path; 
 	
 	time_t next_time;  //下一次新建日志的时间
 	FILE* file;
@@ -28,34 +26,38 @@ private:
 	bool using_mult_thread;
 	pthread_mutex_t mutex;
 
-public:
-	/*explict*/ Log(const string& n, const string& p = ".", 
+private:
+	Log(const std::string& n, const std::string& p = ".", 
 			bool mult_thread = false);
 	~Log();
+	Log(const Log&);
+	Log operator=(const Log&);
 	
+public:
+	static Log& create(const std::string& n, const std::string& p = ".", 
+			bool mult_thread = false);
+
 	bool need_open_new_file();
-	void open_new_file();
+	int open_new_file();
 	void release_file();
 	void update_next_time();
-	void print(const char* file_name, int line, 
+	int print(const char* file_name, int line, 
 			const char* func, const char* fmt, ...);
 
 private:
-	void get_year_month_day(string& res);
-	void get_hour_min_sec(string& res);	
+	void get_year_month_day(std::string& res);
+	void get_hour_min_sec(std::string& res);	
 };
-
 
 class LogContainer
 {
 private:	
-	static Log* debug_log;
-	static const string log_path;
+	static Log* log;
+	static const std::string log_path;
 	static const bool using_mult_thread;
 
 public:
 	static Log* get();
-	static void set(Log*);
 	static Log* create(const char*);
 };
 
@@ -65,8 +67,7 @@ public:
 	{ \
 		if(LogContainer::get() == NULL) \
 		{ \
-			Log* p_log = LogContainer::create(name); \
-			LogContainer::set(p_log); \
+			LogContainer::create(name); \
 		} \
 	} while(0)
 
@@ -79,3 +80,4 @@ public:
 	} while(0)
 
 #endif
+	

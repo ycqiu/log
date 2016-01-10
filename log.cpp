@@ -1,6 +1,15 @@
 #include "log.h"
 
-Log::Log(const string& n, const string& p, 
+using namespace std;
+
+
+Log& Log::create(const std::string& n, const std::string& p, bool mult_thread)
+{
+	static Log log(n, p, mult_thread);
+	return log;
+}
+
+Log::Log(const std::string& n, const std::string& p, 
 		bool mult_thread): 
 	name(n), path(p), file(NULL), using_mult_thread(mult_thread) 
 {
@@ -21,18 +30,19 @@ bool Log::need_open_new_file()
 	return now_time >= next_time;
 }
 
-void Log::open_new_file()
+int Log::open_new_file()
 {
-	string full_path = path + "/" + name;
-	string day;
+	std::string full_path = path + "/" + name;
+	std::string day;
 	get_year_month_day(day);   
 
-	full_path += "_" + day;
-	file = fopen(full_path.c_str(), "ab+");				
+	full_path += "_" + day + ".log";
+	file = fopen(full_path.c_str(), "a+");				
 	if(file == NULL)
 	{
-		return;
+		return -1;
 	}
+	return 0;
 }
 
 void Log::release_file()
@@ -56,7 +66,7 @@ void Log::update_next_time()
 	next_time += DAY_SECONDS;
 }
 
-void Log::print(const char* file_name, int line, 
+int Log::print(const char* file_name, int line, 
 		const char* func, const char* fmt, ...)
 {
 	if(using_mult_thread)
@@ -67,18 +77,26 @@ void Log::print(const char* file_name, int line,
 	if(need_open_new_file())
 	{
 		release_file();
-		open_new_file();
+		if(open_new_file())
+		{
+			return -1;
+		}
 		update_next_time();
 	}
 
-	string day, hour, tm;
+	if(file == NULL)
+	{
+		return -2;
+	}
+
+	std::string day, hour, tm;
 	get_year_month_day(day);
 	get_hour_min_sec(hour);
 
 	tm = day + " " + hour; 
-	fprintf(file, "[%s] ", tm.c_str());
-	fprintf(file, "[%s:%d] ", file_name, line);
-	fprintf(file, "[%s()]: ", func);
+	fprintf(file, "[%s]", tm.c_str());
+	fprintf(file, "[%s:%d]", file_name, line);
+	fprintf(file, "[%s]: ", func);
 
 	va_list ap;
 	va_start(ap, fmt);
@@ -92,45 +110,40 @@ void Log::print(const char* file_name, int line,
 	{
 		pthread_mutex_unlock(&mutex);
 	}
+	return 0;
 }
 
-void Log::get_year_month_day(string& res)
+void Log::get_year_month_day(std::string& res)
 {
 	time_t cur_time = time(NULL);
 	struct tm * timeinfo = localtime(&cur_time);
 
 	char buffer[] = {"yyyy-mm-dd"};
 	strftime(buffer, sizeof(buffer), "%F", timeinfo);
-	res = string(buffer);
+	res = std::string(buffer);
 }
 
-void Log::get_hour_min_sec(string& res)
+void Log::get_hour_min_sec(std::string& res)
 {
 	time_t cur_time = time(NULL);
 	struct tm * timeinfo = localtime(&cur_time);
 
 	char buffer[] = {"hh:mm:ss"};
 	strftime(buffer, sizeof(buffer), "%T", timeinfo);
-	res = string(buffer);
+	res = std::string(buffer);
 }
 
 
-Log* LogContainer::debug_log = NULL;
+Log* LogContainer::log = NULL;
 const string LogContainer::log_path = ".";
-const bool LogContainer::using_mult_thread = false; 
+const bool LogContainer::using_mult_thread = true; 
 
 Log* LogContainer::get()
 {
-	return debug_log;
-}
-
-void LogContainer::set(Log* log)
-{
-	debug_log = log;
+	return log;
 }
 
 Log* LogContainer::create(const char* name)
 {
-	return new Log(name, log_path, using_mult_thread); 
+	return log = &Log::create(name, log_path, using_mult_thread); 
 }
-
