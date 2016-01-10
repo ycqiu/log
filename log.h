@@ -83,6 +83,16 @@ public:
 	} while(0)
 
 
+#define INIT_LOG2(name, conf) \
+	do \
+	{ \
+		if(LogContainer::get() == NULL) \
+		{ \
+			LogContainer::create(name, conf); \
+		} \
+	} while(0)
+
+
 #define DEBUG_LOG(...) \
 	do \
 	{ \
