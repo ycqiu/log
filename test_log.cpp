@@ -37,6 +37,8 @@ void test_mult_thread()
 void test_print()
 {
 	DEBUG_LOG("int: %d, str: %s, double: %lf", 1, "hello world", 1.5);
+	INFO_LOG("int: %d, str: %s, double: %lf", 1, "hello world", 1.5);
+	ERROR_LOG("int: %d, str: %s, double: %lf", 1, "hello world", 1.5);
 }
 
 int main()
