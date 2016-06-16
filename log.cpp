@@ -21,7 +21,7 @@ Log::Log(const std::string& n, const std::string& p,
 	{
 		pthread_mutex_init(&mutex, NULL);
 	}
-	open_new_file();
+	//open_new_file();
 }
 
 bool Log::need_open_new_file()
@@ -75,7 +75,7 @@ int Log::print(int l, const char* file_name, int line,
 {
 	if(level != Log::ALL && level < l)
 	{
-		return -1;
+		return 1;
 	}
 
 	lock();
@@ -86,15 +86,19 @@ int Log::print(int l, const char* file_name, int line,
 		if(open_new_file())
 		{
 			unlock();
-			return -2;
+			return -1;
 		}
 		update_next_time();
 	}
 
+	//lazy open
 	if(file == NULL)
 	{
-		unlock();
-		return -3;
+		if(open_new_file())
+		{
+			unlock();
+			return -2;
+		}
 	}
 
 	std::string msg;
@@ -114,7 +118,7 @@ int Log::print(int l, const char* file_name, int line,
 
 	default:
 		unlock();
-		return -4;
+		return -3;
 	}
 		
 	fprintf(file, "[%s]", msg.c_str());
