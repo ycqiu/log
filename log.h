@@ -96,24 +96,21 @@ public:
 #define DEBUG_LOG(...) \
 	do \
 	{ \
-		Log* p = LogContainer::get(); \
-		p->print(Log::DEBUG, __FILE__, __LINE__, __FUNCTION__ ,__VA_ARGS__); \
+		LogContainer::get()->print(Log::DEBUG, __FILE__, __LINE__, __FUNCTION__ ,__VA_ARGS__); \
 	} while(0)
 
 
 #define INFO_LOG(...) \
 	do \
 	{ \
-		Log* p = LogContainer::get(); \
-		p->print(Log::INFO, __FILE__, __LINE__, __FUNCTION__ ,__VA_ARGS__); \
+		LogContainer::get()->print(Log::INFO, __FILE__, __LINE__, __FUNCTION__ ,__VA_ARGS__); \
 	} while(0)
 
 
 #define ERROR_LOG(...) \
 	do \
 	{ \
-		Log* p = LogContainer::get(); \
-		p->print(Log::ERROR, __FILE__, __LINE__, __FUNCTION__ ,__VA_ARGS__); \
+		LogContainer::get()->print(Log::ERROR, __FILE__, __LINE__, __FUNCTION__ ,__VA_ARGS__); \
 	} while(0)
 
 #endif
